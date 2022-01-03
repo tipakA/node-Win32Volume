@@ -220,7 +220,7 @@ void SetMute__Async(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	);
 }
 
-void Init(v8::Handle<v8::Object> exports, v8::Handle<v8::Object> module) {
+void Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module) {
 	NODE_SET_METHOD(exports, "setVolume", SetVolume__Async);
 	NODE_SET_METHOD(exports, "setVolumeSync", SetVolume);
 	NODE_SET_METHOD(exports, "setMute", SetMute__Async);
