@@ -220,11 +220,30 @@ void SetMute__Async(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	);
 }
 
+void GetVolume(const v8::FunctionCallbackInfo<v8::Value>& args) {
+  v8::Isolate* isolate = args.GetIsolate();
+
+  v8::Local<v8::Function> cb = v8::Local<v8::Function>::Cast(args[1]);
+  const unsigned argc = 1;
+  v8::Local<v8::Value> argv[argc];
+
+  IAudioEndpointVolume* dev = OpenAudioDevice();
+
+  HRESULT result;
+
+  float* volume_level = 0;
+  result = dev->GetMasterVolumeLevelScalar(volume_level);
+  dev->Release();
+
+  args.GetReturnValue().Set(v8::Boolean::New(isolate, (result == S_OK) ? TRUE : FALSE ));
+}
+
 void Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module) {
 	NODE_SET_METHOD(exports, "setVolume", SetVolume__Async);
 	NODE_SET_METHOD(exports, "setVolumeSync", SetVolume);
 	NODE_SET_METHOD(exports, "setMute", SetMute__Async);
 	NODE_SET_METHOD(exports, "setMuteSync", SetMute);
+  NODE_SET_METHOD(exports, "getVolume", GetVolume);
 }
 
 NODE_MODULE(win32_volume, Init)
