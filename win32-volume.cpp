@@ -106,7 +106,7 @@ void SetVolume__AsyncWorkerCb(uv_work_t* request, int status) {
 	if (data->is_callback)
 	v8::Local<v8::Function>::New(isolate, data->callback)
 		->Call(
-      isolate->GetCurrentContext(),
+			isolate->GetCurrentContext(),
 			isolate->GetCurrentContext()->Global(),
 			argc,
 			argv
@@ -186,7 +186,7 @@ void SetMute__AsyncWorkerCb(uv_work_t* request, int status) {
 	if (data->is_callback)
 	v8::Local<v8::Function>::New(isolate, data->callback)
 		->Call(
-      isolate->GetCurrentContext(),
+			isolate->GetCurrentContext(),
 			isolate->GetCurrentContext()->Global(),
 			argc,
 			argv
