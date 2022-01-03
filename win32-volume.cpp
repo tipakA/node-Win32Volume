@@ -24,7 +24,9 @@ struct AsyncWorker {
 	v8::Persistent<v8::Function> callback;
 	bool is_callback;
 	bool is_mute;
+	bool* is_mute_read;
 	double volume_level;
+	float* volume_level_read;
 	HRESULT result;
 };
 
@@ -238,6 +240,122 @@ void GetVolume(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	args.GetReturnValue().Set(v8::Number::New(isolate, *volume_level));
 }
 
+void GetVolume__AsyncWorker(uv_work_t* request) {
+	AsyncWorker* data = static_cast<AsyncWorker *>(request->data);
+
+	IAudioEndpointVolume* dev = OpenAudioDevice();
+
+	data->result = dev->GetMasterVolumeLevelScalar(data->volume_level_read);
+	dev->Release();
+}
+
+void GetVolume__AsyncWorkerCb(uv_work_t* request, int status) {
+	AsyncWorker* data = static_cast<AsyncWorker *>(request->data);
+
+	v8::Isolate* isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope scope(isolate);
+
+	const unsigned argc = 1;
+	v8::Local<v8::Value> argv[argc];
+
+	argv[0] = v8::Number::New(isolate, (double) *data->volume_level_read);
+
+	if (data->is_callback)
+	v8::Local<v8::Function>::New(isolate, data->callback)
+		->Call(
+			isolate->GetCurrentContext(),
+			isolate->GetCurrentContext()->Global(),
+			argc,
+			argv
+		);
+}
+
+void GetVolume__Async(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	v8::Isolate* isolate = args.GetIsolate();
+	v8::Local<v8::Context> context = isolate->GetCurrentContext();
+
+	bool is_callback;
+	v8::Local<v8::Function> cb;
+
+	if (is_callback = !args[1]->IsUndefined()) {
+		cb = v8::Local<v8::Function>::Cast(args[1]);
+	}
+
+	float* volume_level_read;
+
+	AsyncWorker* worker = new AsyncWorker;
+	worker->request.data = worker;
+	worker->is_callback = is_callback;
+	if (is_callback) worker->callback.Reset(isolate, cb);
+	worker->volume_level_read = volume_level_read;
+
+	uv_queue_work(
+		uv_default_loop(),
+		&worker->request,
+		GetVolume__AsyncWorker,
+		GetVolume__AsyncWorkerCb
+	);
+}
+
+void GetMute__AsyncWorker(uv_work_t* request) {
+	AsyncWorker* data = static_cast<AsyncWorker *>(request->data);
+
+	IAudioEndpointVolume* dev = OpenAudioDevice();
+
+	data->result = dev->GetMute((BOOL*) data->is_mute_read);
+}
+
+void GetMute__AsyncWorkerCb(uv_work_t* request, int status) {
+	AsyncWorker* data = static_cast<AsyncWorker *>(request->data);
+
+	v8::Isolate* isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope scope(isolate);
+
+	const unsigned argc = 1;
+	v8::Local<v8::Value> argv[argc];
+
+	argv[0] = v8::Boolean::New(
+		isolate,
+		data->is_mute_read
+	);
+
+	if (data->is_callback)
+	v8::Local<v8::Function>::New(isolate, data->callback)
+		->Call(
+			isolate->GetCurrentContext(),
+			isolate->GetCurrentContext()->Global(),
+			argc,
+			argv
+		);
+}
+
+void GetMute__Async(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	v8::Isolate* isolate = args.GetIsolate();
+	v8::Local<v8::Context> context = isolate->GetCurrentContext();
+
+	bool is_callback;
+	v8::Local<v8::Function> cb;
+
+	if (is_callback = !args[1]->IsUndefined()) {
+		cb = v8::Local<v8::Function>::Cast(args[1]);
+	}
+
+	bool* is_mute_read;
+
+	AsyncWorker* worker = new AsyncWorker;
+	worker->request.data = worker;
+	worker->is_callback = is_callback;
+	if (is_callback) worker->callback.Reset(isolate, cb);
+	worker->is_mute_read = is_mute_read;
+
+	uv_queue_work(
+		uv_default_loop(),
+		&worker->request,
+		GetMute__AsyncWorker,
+		GetMute__AsyncWorkerCb
+	);
+}
+
 void GetMute(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	v8::Isolate* isolate = args.GetIsolate();
 	
@@ -261,8 +379,10 @@ void Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module) {
 	NODE_SET_METHOD(exports, "setVolumeSync", SetVolume);
 	NODE_SET_METHOD(exports, "setMute", SetMute__Async);
 	NODE_SET_METHOD(exports, "setMuteSync", SetMute);
-	NODE_SET_METHOD(exports, "getVolume", GetVolume);
-	NODE_SET_METHOD(exports, "getMute", GetMute);
+	NODE_SET_METHOD(exports, "getVolume", GetVolume__Async);
+	NODE_SET_METHOD(exports, "getVolumeSync", GetVolume);
+	NODE_SET_METHOD(exports, "getMute", GetMute__Async);
+	NODE_SET_METHOD(exports, "getMuteSync", GetMute);
 }
 
 NODE_MODULE(win32_volume, Init)
