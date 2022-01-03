@@ -253,7 +253,7 @@ void GetMute(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	result = dev->GetMute(is_mute);
 	dev->Release();
 
-	args.GetReturnValue().Set(v8::Boolean::New(isolate, is_mute ? TRUE : FALSE));
+	args.GetReturnValue().Set(v8::Boolean::New(isolate, (bool) is_mute ? TRUE : FALSE));
 }
 
 void Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module) {
