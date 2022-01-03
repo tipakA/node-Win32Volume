@@ -221,21 +221,39 @@ void SetMute__Async(const v8::FunctionCallbackInfo<v8::Value>& args) {
 }
 
 void GetVolume(const v8::FunctionCallbackInfo<v8::Value>& args) {
-  v8::Isolate* isolate = args.GetIsolate();
+	v8::Isolate* isolate = args.GetIsolate();
 
-  v8::Local<v8::Function> cb = v8::Local<v8::Function>::Cast(args[1]);
-  const unsigned argc = 1;
-  v8::Local<v8::Value> argv[argc];
+	v8::Local<v8::Function> cb = v8::Local<v8::Function>::Cast(args[1]);
+	const unsigned argc = 1;
+	v8::Local<v8::Value> argv[argc];
 
-  IAudioEndpointVolume* dev = OpenAudioDevice();
+	IAudioEndpointVolume* dev = OpenAudioDevice();
 
-  HRESULT result;
+	HRESULT result;
 
-  float* volume_level = 0;
-  result = dev->GetMasterVolumeLevelScalar(volume_level);
-  dev->Release();
+	float* volume_level = 0;
+	result = dev->GetMasterVolumeLevelScalar(volume_level);
+	dev->Release();
 
-  args.GetReturnValue().Set(v8::Boolean::New(isolate, (result == S_OK) ? TRUE : FALSE ));
+	args.GetReturnValue().Set(v8::Number::New(isolate, *volume_level));
+}
+
+void GetMute(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	v8::Isolate* isolate = args.GetIsolate();
+	
+	v8::Local<v8::Function> cb = v8::Local<v8::Function>::Cast(args[1]);
+	const unsigned argc = 1;
+	v8::Local<v8::Value> argv[argc];
+
+	IAudioEndpointVolume* dev = OpenAudioDevice();
+	
+	HRESULT result;
+
+	BOOL* is_mute = (BOOL) false;
+	result = dev->GetMute(is_mute);
+	dev->Release();
+
+	args.GetReturnValue().Set(v8::Boolean::New(isolate, is_mute ? TRUE : FALSE));
 }
 
 void Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module) {
@@ -243,7 +261,8 @@ void Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module) {
 	NODE_SET_METHOD(exports, "setVolumeSync", SetVolume);
 	NODE_SET_METHOD(exports, "setMute", SetMute__Async);
 	NODE_SET_METHOD(exports, "setMuteSync", SetMute);
-  NODE_SET_METHOD(exports, "getVolume", GetVolume);
+	NODE_SET_METHOD(exports, "getVolume", GetVolume);
+	NODE_SET_METHOD(exports, "getMute", GetMute);
 }
 
 NODE_MODULE(win32_volume, Init)
