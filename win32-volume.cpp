@@ -61,10 +61,10 @@ IAudioEndpointVolume* OpenAudioDevice() {
 }
 
 void SetVolume(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	v8::Isolate* isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope scope(isolate);
+	v8::Isolate* isolate = args.GetIsolate();
+	v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
-	double volume_level = v8::Local<v8::Integer>::Cast(args[0])->NumberValue();
+	double volume_level = v8::Local<v8::Integer>::Cast(args[0])->NumberValue(context).FromJust();
 
 	v8::Local<v8::Function> cb = v8::Local<v8::Function>::Cast(args[1]);
 	const unsigned argc = 1;
@@ -113,10 +113,10 @@ void SetVolume__AsyncWorkerCb(uv_work_t* request, int status) {
 }
 
 void SetVolume__Async(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	v8::Isolate* isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope scope(isolate);
+	v8::Isolate* isolate = args.GetIsolate();
+	v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
-	double volume_level = v8::Local<v8::Boolean>::Cast(args[0])->NumberValue();
+	double volume_level = v8::Local<v8::Integer>::Cast(args[0])->NumberValue(context).FromJust();
 
 	bool is_callback;
 	v8::Local<v8::Function> cb;
@@ -140,10 +140,10 @@ void SetVolume__Async(const v8::FunctionCallbackInfo<v8::Value>& args) {
 }
 
 void SetMute(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	v8::Isolate* isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope scope(isolate);
+	v8::Isolate* isolate = args.GetIsolate();
+	v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
-	bool is_mute = v8::Local<v8::Boolean>::Cast(args[0])->NumberValue();
+	bool is_mute = v8::Local<v8::Boolean>::Cast(args[0])->NumberValue(context).FromJust();
 
 	v8::Local<v8::Function> cb = v8::Local<v8::Function>::Cast(args[1]);
 	const unsigned argc = 1;
@@ -192,10 +192,10 @@ void SetMute__AsyncWorkerCb(uv_work_t* request, int status) {
 }
 
 void SetMute__Async(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	v8::Isolate* isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope scope(isolate);
+	v8::Isolate* isolate = args.GetIsolate();
+	v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
-	bool is_mute = v8::Local<v8::Boolean>::Cast(args[0])->NumberValue();
+	bool is_mute = v8::Local<v8::Boolean>::Cast(args[0])->NumberValue(context).FromJust();
 
 	bool is_callback;
 	v8::Local<v8::Function> cb;
